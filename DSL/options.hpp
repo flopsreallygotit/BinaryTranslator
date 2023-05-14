@@ -1,20 +1,21 @@
-#pragma once
+#ifndef OPTIONS_H
+#define OPTIONS_H
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(ADD,      "ADD")
+DEFINE_OPTION(ADD,      "+")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(SUB,      "SUB")
+DEFINE_OPTION(SUB,      "-")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(MUL,      "MUL")
+DEFINE_OPTION(MUL,      "*")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(DIV,      "DIV")
+DEFINE_OPTION(DIV,      "/")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -34,27 +35,27 @@ DEFINE_OPTION(SQRT,     "SQRT")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(IS_EE,    "EQUAL")
+DEFINE_OPTION(IS_EE,    "==")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(IS_GE,    "BIGGER_OR_EQUAL")
+DEFINE_OPTION(IS_GE,    ">=")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(IS_BE,    "SMALLER_OR_EQUAL")
+DEFINE_OPTION(IS_BE,    "<=")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(IS_GT,    "BIGGER")
+DEFINE_OPTION(IS_GT,    ">")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(IS_BT,    "SMALLER")
+DEFINE_OPTION(IS_BT,    "<")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(IS_NE,    "NOT_EQUAL")
+DEFINE_OPTION(IS_NE,    "!=")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -110,10 +111,12 @@ DEFINE_OPTION(SEMI_COL, ";")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Options that can't be used in language, but used in tree
+// Options that cannot be used in language, but used in tree.
 
 DEFINE_OPTION(ST,   " ")
 DEFINE_OPTION(VOID, " ")
 DEFINE_OPTION(TYPE, " ")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#endif

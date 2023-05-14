@@ -2,54 +2,48 @@
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#include "treeUtils.h"
-#include "replacements.h"
-#include "tokenizerUtils.hpp"
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-/// @brief Parses file and creates tree depending on it.
-/// @param filename Name of file with programm.
-tree *parseTokens (token **tokenArray);
+#include "tree.hpp"
+#include "config.hpp"
+#include "replacements.hpp"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // Recursive descent:
 
-node *getGrammar      (FUNC_ARGUMENTS);
+node_t *getGrammar      (FUNC_ARGUMENTS);
 
-node *getStatement    (FUNC_ARGUMENTS);
+node_t *getStatement    (FUNC_ARGUMENTS);
 
-node *getFunction     (FUNC_ARGUMENTS);
+node_t *getFunction     (FUNC_ARGUMENTS);
 
-node *getHeader       (FUNC_ARGUMENTS);
+node_t *getHeader       (FUNC_ARGUMENTS);
 
-node *getParameter    (FUNC_ARGUMENTS);
+node_t *getParameter    (FUNC_ARGUMENTS);
 
-node *getCondition    (FUNC_ARGUMENTS);
+node_t *getCondition    (FUNC_ARGUMENTS);
 
-node *getCycle        (FUNC_ARGUMENTS);
+node_t *getCycle        (FUNC_ARGUMENTS);
 
-node *getReturn       (FUNC_ARGUMENTS);
+node_t *getReturn       (FUNC_ARGUMENTS);
 
-node* getCall         (FUNC_ARGUMENTS);
+node_t* getCall         (FUNC_ARGUMENTS);
 
-node* getInOutput     (FUNC_ARGUMENTS);
+node_t* getInOutput     (FUNC_ARGUMENTS);
 
-node* getVariable     (FUNC_ARGUMENTS);
+node_t* getVariable     (FUNC_ARGUMENTS);
 
-node* getExpression   (FUNC_ARGUMENTS);
+node_t* getExpression   (FUNC_ARGUMENTS);
 
-node* getAddSub       (FUNC_ARGUMENTS);
+node_t* getAddSub       (FUNC_ARGUMENTS);
 
-node* getMulDiv       (FUNC_ARGUMENTS);
+node_t* getMulDiv       (FUNC_ARGUMENTS);
 
-node* getPower        (FUNC_ARGUMENTS);
+node_t* getPower        (FUNC_ARGUMENTS);
 
-node* getBrackets     (FUNC_ARGUMENTS);
+node_t* getBrackets     (FUNC_ARGUMENTS);
 
-node* getUnary        (FUNC_ARGUMENTS);
+node_t* getUnary        (FUNC_ARGUMENTS);
 
-node *getNumberOrName (FUNC_ARGUMENTS);
+node_t *getNumberOrName (FUNC_ARGUMENTS);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

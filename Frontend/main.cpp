@@ -1,3 +1,9 @@
+#include <assert.h>
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#include "tokenizer.hpp"
+#include "universalUtils.hpp"
 #include "recursiveDescent.hpp"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6,38 +12,36 @@ int main (const int argc, const char *argv[])
 {
     const char *filename = checkFirstArgvAndGetIt(argc, argv);
 
-    CHECKERROR(filename != NULL &&
-               "Filename is NULL", 
-               -1);
+    assert(filename != NULL);
 
-    token **tokenArray = tokenArrayConstructor(filename);
+    token_t **tokenArray = tokenArrayConstructor(filename);
 
-    CHECKERROR(tokenArray != NULL &&
-               "Token array is NULL",
-               -1);
+    assert(tokenArray != NULL);
 
     #ifdef DEBUG
     tokenArrayDump(tokenArray);
     #endif
 
-    tree *Tree = parseTokens(tokenArray);
+    tree_t tree = {};
+    treeConstructor(&tree);
 
-    CHECKERROR(Tree != NULL &&
-               "Tree is NULL.",
-               ERROR);
+    size_t token_idx = 0;
+    tree.root = getGrammar(tokenArray, &token_idx);
+
+    assert(tree.root != NULL);
 
     #ifdef DEBUG
 
     FILE *output = fopen("FrontEndOutput.htm", "w");
-    treeDump(Tree, "Tree after parse.", output);
+    treeDump(&tree, "Tree after parse.", output);
     fclose(output);
 
     #endif
 
-    outputTree(Tree, filename);
+    outputTree(&tree, filename);
 
     tokenArrayDestructor(tokenArray);
-    treeDestructor(Tree);
+    treeDestructor(&tree);
 
     return 0;
 }

@@ -2,27 +2,9 @@
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#include "tokenizer.hpp"
 #include "universalUtils.hpp"
 #include "recursiveDescent.hpp"
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-// Parsing tree from input file:
-
-tree *parseTokens (token **tokenArray)
-{
-    tree *Tree = treeConstructor;
-
-    CHECKERROR(Tree != NULL &&
-               "Can't create tree.",
-               NULL);
-
-    size_t token_idx = 0;
-
-    Tree->root = getGrammar(tokenArray, &token_idx);
-
-    return Tree;
-}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -34,23 +16,23 @@ tree *parseTokens (token **tokenArray)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getGrammar (FUNC_ARGUMENTS)
+node_t *getGrammar (FUNC_ARGUMENTS)
 {
-    node *Node = getStatement(ARGUMENTS);
+    node_t *node = getStatement(ARGUMENTS);
 
     if (CURRENT_OPTION != TERMINATION_SYM)
     {
-        nodeDestructor(Node);
+        nodeDestructor(node);
         
         return NULL;
     }
 
-    return Node;
+    return node;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getStatement (FUNC_ARGUMENTS)
+node_t *getStatement (FUNC_ARGUMENTS)
 {
     DUMP;
 
@@ -71,34 +53,34 @@ node *getStatement (FUNC_ARGUMENTS)
         return NULL;
     }
 
-    node *Node = NEW_NODE(ST);
+    node_t *node = NEW_NODE(ST);
 
     CHECK_ALL_OK;
 
-    Node->left  = getFunction(ARGUMENTS);
-    Node->right = getStatement(ARGUMENTS);
+    node->left  = getFunction(ARGUMENTS);
+    node->right = getStatement(ARGUMENTS);
 
-    return Node;
+    return node;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getFunction (FUNC_ARGUMENTS)
+node_t *getFunction (FUNC_ARGUMENTS)
 {
     DUMP;
 
     if (CURRENT_OPTION == FUNC)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        Node->left  = getHeader(ARGUMENTS);
-        Node->right = getStatement(ARGUMENTS);
+        node->left  = getHeader(ARGUMENTS);
+        node->right = getStatement(ARGUMENTS);
     
-        return Node;
+        return node;
     }
 
     else
@@ -107,23 +89,23 @@ node *getFunction (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getHeader (FUNC_ARGUMENTS)
+node_t *getHeader (FUNC_ARGUMENTS)
 {
     DUMP;
 
-    node *Node = getNumberOrName(ARGUMENTS);
+    node_t *node = getNumberOrName(ARGUMENTS);
 
     CHECK_ALL_OK;
 
-    Node->type = NAME;
-    Node->left = getParameter(ARGUMENTS);
+    node->type = NAME;
+    node->left = getParameter(ARGUMENTS);
 
-    return Node;
+    return node;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getParameter (FUNC_ARGUMENTS)
+node_t *getParameter (FUNC_ARGUMENTS)
 {
     DUMP;
 
@@ -137,46 +119,46 @@ node *getParameter (FUNC_ARGUMENTS)
         return NULL;
     }
 
-    node *Node = NEW_NODE(PARAM);
+    node_t *node = NEW_NODE(PARAM);
 
     CHECK_ALL_OK;
 
-    Node->left  = getVariable(ARGUMENTS);
-    Node->right = getParameter(ARGUMENTS);
+    node->left  = getVariable(ARGUMENTS);
+    node->right = getParameter(ARGUMENTS);
 
-    return Node;
+    return node;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getCondition (FUNC_ARGUMENTS)
+node_t *getCondition (FUNC_ARGUMENTS)
 {
     DUMP;
 
     if (CURRENT_OPTION == IF)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        Node->left = getExpression(ARGUMENTS);
+        node->left = getExpression(ARGUMENTS);
 
-        Node->right = NEW_NODE(ELSE);
+        node->right = NEW_NODE(ELSE);
 
         CHECK_ALL_OK;
 
-        Node->right->left = getStatement(ARGUMENTS);
+        node->right->left = getStatement(ARGUMENTS);
 
         if (CURRENT_OPTION != ELSE)
             return NULL;
 
         NEXT_TOKEN;
 
-        Node->right->right = getStatement(ARGUMENTS);
+        node->right->right = getStatement(ARGUMENTS);
         
-        return Node;
+        return node;
     }
 
     else
@@ -185,22 +167,22 @@ node *getCondition (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getCycle (FUNC_ARGUMENTS)
+node_t *getCycle (FUNC_ARGUMENTS)
 {
     DUMP;
 
     if (CURRENT_OPTION == WHILE)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        Node->left  = getExpression(ARGUMENTS);
-        Node->right = getStatement(ARGUMENTS);
+        node->left  = getExpression(ARGUMENTS);
+        node->right = getStatement(ARGUMENTS);
         
-        return Node;
+        return node;
     }
 
     else
@@ -210,7 +192,7 @@ node *getCycle (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getReturn (FUNC_ARGUMENTS)
+node_t *getReturn (FUNC_ARGUMENTS)
 {
     DUMP;
 
@@ -227,22 +209,22 @@ node *getReturn (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getCall (FUNC_ARGUMENTS)
+node_t *getCall (FUNC_ARGUMENTS)
 {
     DUMP;
 
     if (CURRENT_OPTION == CALL)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        Node->left = getNumberOrName(ARGUMENTS);
-        Node->left->type = SHORT_NAME;
+        node->left = getNumberOrName(ARGUMENTS);
+        node->left->type = SHORT_NAME;
 
-        return Node;
+        return node;
     }
 
     else 
@@ -251,22 +233,22 @@ node *getCall (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getInOutput (FUNC_ARGUMENTS)
+node_t *getInOutput (FUNC_ARGUMENTS)
 {
     DUMP;
 
     if (CURRENT_OPTION == IN ||
         CURRENT_OPTION == OUT)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        Node->left = getParameter(ARGUMENTS);
+        node->left = getParameter(ARGUMENTS);
 
-        return Node;
+        return node;
     }
 
     else
@@ -275,22 +257,22 @@ node *getInOutput (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getVariable (FUNC_ARGUMENTS)
+node_t *getVariable (FUNC_ARGUMENTS)
 {
     DUMP;
 
     if (CURRENT_OPTION == VAR)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        Node->left  = getVariable(ARGUMENTS);
-        Node->right = getExpression(ARGUMENTS);
+        node->left  = getVariable(ARGUMENTS);
+        node->right = getExpression(ARGUMENTS);
 
-        return Node;
+        return node;
     }
 
     else
@@ -299,11 +281,11 @@ node *getVariable (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getExpression (FUNC_ARGUMENTS)
+node_t *getExpression (FUNC_ARGUMENTS)
 {
     DUMP;
 
-    node *leftNode = getAddSub(ARGUMENTS);
+    node_t *leftNode = getAddSub(ARGUMENTS);
 
     if (CURRENT_OPTION == IS_EE ||
         CURRENT_OPTION == IS_GE ||
@@ -312,17 +294,17 @@ node *getExpression (FUNC_ARGUMENTS)
         CURRENT_OPTION == IS_BT ||
         CURRENT_OPTION == IS_NE)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
         
         NEXT_TOKEN;
 
-        Node->left = leftNode;
+        node->left = leftNode;
 
-        Node->right = getAddSub(ARGUMENTS);
+        node->right = getAddSub(ARGUMENTS);
     
-        return Node;
+        return node;
     }
 
     return leftNode;
@@ -330,11 +312,11 @@ node *getExpression (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getAddSub (FUNC_ARGUMENTS)
+node_t *getAddSub (FUNC_ARGUMENTS)
 {
     DUMP;
 
-    node *leftNode = getMulDiv(ARGUMENTS);
+    node_t *leftNode = getMulDiv(ARGUMENTS);
 
     OPTIONS Option = CURRENT_OPTION;
 
@@ -343,7 +325,7 @@ node *getAddSub (FUNC_ARGUMENTS)
     {
         NEXT_TOKEN;
 
-        node *rightNode = getMulDiv(ARGUMENTS);
+        node_t *rightNode = getMulDiv(ARGUMENTS);
 
         leftNode = UNION_NODE(Option);
     }   
@@ -353,11 +335,11 @@ node *getAddSub (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getMulDiv (FUNC_ARGUMENTS)
+node_t *getMulDiv (FUNC_ARGUMENTS)
 {
     DUMP;
 
-    node *leftNode = getPower(ARGUMENTS);
+    node_t *leftNode = getPower(ARGUMENTS);
 
     OPTIONS Option = CURRENT_OPTION;
 
@@ -366,7 +348,7 @@ node *getMulDiv (FUNC_ARGUMENTS)
     {
         NEXT_TOKEN;
 
-        node *rightNode = getPower(ARGUMENTS);
+        node_t *rightNode = getPower(ARGUMENTS);
 
         leftNode = UNION_NODE(Option);
     }   
@@ -376,11 +358,11 @@ node *getMulDiv (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getPower (FUNC_ARGUMENTS)
+node_t *getPower (FUNC_ARGUMENTS)
 {
     DUMP;
 
-    node *leftNode = getBrackets(ARGUMENTS);
+    node_t *leftNode = getBrackets(ARGUMENTS);
 
     OPTIONS Option = CURRENT_OPTION;
 
@@ -388,7 +370,7 @@ node *getPower (FUNC_ARGUMENTS)
     {
         NEXT_TOKEN; 
 
-        node *rightNode = getBrackets(ARGUMENTS);
+        node_t *rightNode = getBrackets(ARGUMENTS);
 
         leftNode = UNION_NODE(Option);
     }   
@@ -398,7 +380,7 @@ node *getPower (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getBrackets (FUNC_ARGUMENTS)
+node_t *getBrackets (FUNC_ARGUMENTS)
 { 
     DUMP;
 
@@ -406,7 +388,7 @@ node *getBrackets (FUNC_ARGUMENTS)
     {
         NEXT_TOKEN;
 
-        node* Node = getExpression(ARGUMENTS);
+        node_t* node = getExpression(ARGUMENTS);
 
         CHECK_ALL_OK;
 
@@ -414,7 +396,7 @@ node *getBrackets (FUNC_ARGUMENTS)
         {
             NEXT_TOKEN;
 
-            return Node;
+            return node;
         }
 
         else 
@@ -427,7 +409,7 @@ node *getBrackets (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getUnary (FUNC_ARGUMENTS)
+node_t *getUnary (FUNC_ARGUMENTS)
 {
     DUMP;
 
@@ -435,15 +417,15 @@ node *getUnary (FUNC_ARGUMENTS)
         CURRENT_OPTION == COS ||
         CURRENT_OPTION == SQRT)
     {
-        node *Node = NEW_CURRENT_OPTION_NODE;
+        node_t *node = NEW_CURRENT_OPTION_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        Node->left = getBrackets(ARGUMENTS);
+        node->left = getBrackets(ARGUMENTS);
 
-        return Node;
+        return node;
     }
 
     else 
@@ -452,30 +434,30 @@ node *getUnary (FUNC_ARGUMENTS)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-node *getNumberOrName (FUNC_ARGUMENTS)
+node_t *getNumberOrName (FUNC_ARGUMENTS)
 {
     DUMP;
 
     if (CURRENT_TOKEN->type == VALUE)
     {
-        node *Node = NEW_CURRENT_VALUE_NODE
+        node_t *node = NEW_CURRENT_VALUE_NODE
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        return Node;
+        return node;
     }
 
     else if (CURRENT_TOKEN->type == NAME)
     {
-        node *Node = NEW_CURRENT_VARIABLE_NODE;
+        node_t *node = NEW_CURRENT_VARIABLE_NODE;
 
         CHECK_ALL_OK;
 
         NEXT_TOKEN;
 
-        return Node;
+        return node;
     }
 
     else 

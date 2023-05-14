@@ -1,17 +1,15 @@
 #include <math.h>
 #include <ctype.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#include "config.h"
 #include "textUtils.hpp"
-#include "tokenizerUtils.hpp"
+#include "tokenizer.hpp"
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-// Skipping useless symbols.
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 static void skipSpaces (char **string)
 {
@@ -42,31 +40,27 @@ static void skipUselessSymbols (char **string)
     return;
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Working with tokens.
-
-static token *tokenConstructor (TYPES type, data_t data)
+static token_t *tokenConstructor (TYPES type, data_t data)
 {
-    token *Token = (token *) calloc (1, sizeof(token));
+    token_t *token = (token_t *) calloc (1, sizeof(token_t));
 
-    Token->type = type;
-    Token->data = data;
+    token->type = type;
+    token->data = data;
 
-    return Token;
+    return token;
 }
 
-static void tokenDestructor (token *Token)
+static void tokenDestructor (token_t *token)
 { 
-    free(Token);
-    Token = NULL;
+    free(token);
+    token = NULL;
 
     return;
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-// Functions for string scanning.
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 static double scanNumber (char **string)
 {
@@ -92,7 +86,7 @@ static char *scanString (char **string)
     return buffer;
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // Checks that string contains option.
 
@@ -100,42 +94,45 @@ static OPTIONS getOption (const char *string)
 {
     OPTIONS option = UNKNOWN;
 
+    #ifdef DEBUG
     printf("String is '%s'\n", string);
+    #endif
+    
     size_t  length = strlen(string);
 
     #define DEFINE_OPTION(option, name, ...)                                  \
         if (length == strlen(name) && strncasecmp(name, string, length) == 0) \
             return option;
 
-    #include "options.h"
+    #include "options.hpp"
 
     #undef DEFINE_OPTION
 
     return option;
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Destructor for token array.
+// Destructor for token_t array.
 
-void tokenArrayDestructor (token **tokenArray)
+void tokenArrayDestructor (token_t **tokenArray)
 {
-    size_t token_idx = 0;
+    size_t tokenIndex = 0;
 
-    while (tokenArray[token_idx]->data.option != TERMINATION_SYM)
+    while (tokenArray[tokenIndex]->data.option != TERMINATION_SYM)
     {
-        if (tokenArray[token_idx]->type == NAME)
+        if (tokenArray[tokenIndex]->type == NAME)
         {
-            free(tokenArray[token_idx]->data.name);
-            tokenArray[token_idx]->data.name = NULL;
+            free(tokenArray[tokenIndex]->data.name);
+            tokenArray[tokenIndex]->data.name = NULL;
         }
 
-        tokenDestructor(tokenArray[token_idx]);
+        tokenDestructor(tokenArray[tokenIndex]);
 
-        token_idx++;
+        tokenIndex++;
     }
 
-    tokenDestructor(tokenArray[token_idx]);
+    tokenDestructor(tokenArray[tokenIndex]);
 
     free(tokenArray);
     tokenArray = NULL;
@@ -143,19 +140,21 @@ void tokenArrayDestructor (token **tokenArray)
     return;
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Constructor for token array.
+// Constructor for token_t array.
 
-token **tokenArrayConstructor (const char *filename)
+token_t **tokenArrayConstructor (const char *filename)
 {
     text_t text = {};
     textConstructor(&text, filename, false);
 
-    token **tokenArray = (token **) calloc (MaxTokenCount, sizeof(token *));
+    assert(text.buffer != NULL);
+
+    token_t **tokenArray = (token_t **) calloc (MaxTokenCount, sizeof(token_t *));
     size_t tokenNumber = 0;
 
-    char  *bufferPointer = text.buffer;
+    char *bufferPointer = text.buffer;
     while (*bufferPointer != '\0')
     {
         skipUselessSymbols(&bufferPointer);
@@ -181,9 +180,13 @@ token **tokenArrayConstructor (const char *filename)
         
         else
         {
+            #ifdef DEBUG
             fprintf(stderr, "Buffer pointer %p | %c | ", bufferPointer, *bufferPointer);
             fprintf(stderr, "%d;\n", *bufferPointer);
+            #endif
+
             char *string = scanString(&bufferPointer);
+        
             OPTIONS option = getOption(string);
 
             if (option != UNKNOWN)
@@ -210,10 +213,10 @@ token **tokenArrayConstructor (const char *filename)
     DESTRUCTOR:
         textDestructor(&text);
         
-        for (size_t token_idx = 0; token_idx < tokenNumber; token_idx++)
+        for (size_t tokenIndex = 0; tokenIndex < tokenNumber; tokenIndex++)
         {
-            free(tokenArray[token_idx]);
-            tokenArray[token_idx] = NULL;
+            free(tokenArray[tokenIndex]);
+            tokenArray[tokenIndex] = NULL;
         }
 
         free(tokenArray);
@@ -222,26 +225,26 @@ token **tokenArrayConstructor (const char *filename)
         return NULL;
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Dump for token array.
+// Dump for token_t array.
 
-void tokenDump (token *Token)
+void tokenDump (token_t *token)
 {
-    switch (Token->type)
+    switch (token->type)
     {
         case OPTION:
-            printf("OPTION: %d\n",  Token->data.option);
+            printf("OPTION: %d\n",  token->data.option);
             break;
 
         case VALUE:
-            printf("VALUE:  %lg\n", Token->data.value);
+            printf("VALUE:  %lg\n", token->data.value);
             break;
 
         case SHORT_NAME:
         case VARIABLE: // Can't be initialized in tokenizer. Just for warning remove.
         case NAME:
-            printf("NAME:   %s\n",  Token->data.name);
+            printf("NAME:   %s\n",  token->data.name);
             break;
 
         default:
@@ -250,21 +253,21 @@ void tokenDump (token *Token)
     }
 }
 
-void tokenArrayDump (token **tokenArray)
+void tokenArrayDump (token_t **tokenArray)
 {
-    size_t token_idx = 0;
+    size_t tokenIndex = 0;
 
     printf(BOLD MAGENTA "TOKEN ARRAY DUMP:\n" BOLD YELLOW);
-    while (tokenArray[token_idx]->data.option != TERMINATION_SYM)
+    while (tokenArray[tokenIndex]->data.option != TERMINATION_SYM)
     {
-        tokenDump(tokenArray[token_idx]);
+        tokenDump(tokenArray[tokenIndex]);
 
-        token_idx++;
+        tokenIndex++;
     }
 
-    printf("TERMINATION SYMBOL: %d\n\n" RESET, tokenArray[token_idx]->data.option);
+    printf("TERMINATION SYMBOL: %d\n\n" RESET, tokenArray[tokenIndex]->data.option);
 
     return;
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

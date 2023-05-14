@@ -24,7 +24,7 @@ CXXFLAGS ?= -ggdb3 -std=c++17 -O0 -Wall -Wextra 							\
 			-Wno-old-style-cast -Wno-varargs -Wstack-protector -fcheck-new 	\
 			-fsized-deallocation -fstack-protector -fstrict-overflow 	   	\
 			-flto-odr-type-merging -fno-omit-frame-pointer -pie -fPIE 	   	\
-			-DDEBUG															\
+			# -DDEBUG															\
 
 # Configure linker flags
 
@@ -42,9 +42,9 @@ DIRFLAGS ?= -IUniversal -IConfig -IDSL -IFrontEnd -ITree
 
 # Configure sources you need to compile
 
-SOURCES  ?= Frontend/main.cpp Frontend/recursiveDescent.cpp Frontend/tokenizerUtils.cpp	\
-			Tree/treeUtils.cpp															\
-			Universal/universalUtils.cpp Universal/textUtils.cpp						\
+SOURCES  ?= Frontend/main.cpp Frontend/recursiveDescent.cpp Frontend/tokenizer.cpp	\
+			Tree/tree.cpp															\
+			Universal/universalUtils.cpp Universal/textUtils.cpp					\
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
