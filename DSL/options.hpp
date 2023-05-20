@@ -35,6 +35,10 @@ DEFINE_OPTION(SQRT,     "SQRT")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+DEFINE_OPTION(EQ,       "=")
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 DEFINE_OPTION(IS_EE,    "==")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,7 +83,7 @@ DEFINE_OPTION(WHILE,    "WHILE")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DEFINE_OPTION(FUNC,     "DEFINE")
+DEFINE_OPTION(FUNC,     "FUNC")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -113,9 +117,10 @@ DEFINE_OPTION(SEMI_COL, ";")
 
 // Options that cannot be used in language, but used in tree.
 
-DEFINE_OPTION(ST,   " ")
-DEFINE_OPTION(VOID, " ")
-DEFINE_OPTION(TYPE, " ")
+DEFINE_OPTION(ST,    " ")
+DEFINE_OPTION(VOID,  " ")
+DEFINE_OPTION(TYPE,  " ")
+DEFINE_OPTION(PARAM, " ")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

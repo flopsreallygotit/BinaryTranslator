@@ -15,7 +15,7 @@
 
 #ifndef LONG_FUNC_ARGUMENTS
 #define LONG_FUNC_ARGUMENTS FUNC_ARGUMENTS,                                     \
-                            variable **variableArray, size_t *variableIndex,    \
+                            variable_t **variableArray, size_t *variableIndex,  \
                             size_t capacity, bool isFunction, char *function
 #endif
 

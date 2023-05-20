@@ -198,9 +198,14 @@ node_t *getReturn (FUNC_ARGUMENTS)
 
     if (CURRENT_OPTION == RET)
     {
+        node_t *node = NEW_CURRENT_OPTION_NODE;
+        
         NEXT_TOKEN;
 
-        return NEW_NODE(RET);
+        node->left  = getParameter(ARGUMENTS);
+        node->right = NULL;
+
+        return node;
     }
 
     else 
@@ -224,6 +229,8 @@ node_t *getCall (FUNC_ARGUMENTS)
         node->left = getNumberOrName(ARGUMENTS);
         node->left->type = SHORT_NAME;
 
+        node->right = getParameter(ARGUMENTS);
+
         return node;
     }
 
@@ -246,7 +253,8 @@ node_t *getInOutput (FUNC_ARGUMENTS)
 
         NEXT_TOKEN;
 
-        node->left = getParameter(ARGUMENTS);
+        node->left  = getParameter(ARGUMENTS);
+        node->right = NULL;
 
         return node;
     }
@@ -269,14 +277,14 @@ node_t *getVariable (FUNC_ARGUMENTS)
 
         NEXT_TOKEN;
 
-        node->left  = getVariable(ARGUMENTS);
-        node->right = getExpression(ARGUMENTS);
+        node->left  = getNumberOrName(ARGUMENTS);
+        node->right = getCall(ARGUMENTS);
 
         return node;
     }
 
     else
-        return getUnary(ARGUMENTS);
+        return getExpression(ARGUMENTS);
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -287,7 +295,8 @@ node_t *getExpression (FUNC_ARGUMENTS)
 
     node_t *leftNode = getAddSub(ARGUMENTS);
 
-    if (CURRENT_OPTION == IS_EE ||
+    if (CURRENT_OPTION == EQ    ||
+        CURRENT_OPTION == IS_EE ||
         CURRENT_OPTION == IS_GE ||
         CURRENT_OPTION == IS_BE ||
         CURRENT_OPTION == IS_GT ||
@@ -318,11 +327,11 @@ node_t *getAddSub (FUNC_ARGUMENTS)
 
     node_t *leftNode = getMulDiv(ARGUMENTS);
 
-    OPTIONS Option = CURRENT_OPTION;
-
-    while (Option == ADD || 
-           Option == SUB)
+    while (CURRENT_OPTION == ADD || 
+           CURRENT_OPTION == SUB)
     {
+        OPTIONS Option = CURRENT_OPTION;
+
         NEXT_TOKEN;
 
         node_t *rightNode = getMulDiv(ARGUMENTS);
@@ -341,11 +350,11 @@ node_t *getMulDiv (FUNC_ARGUMENTS)
 
     node_t *leftNode = getPower(ARGUMENTS);
 
-    OPTIONS Option = CURRENT_OPTION;
-
-    while (Option == MUL || 
-           Option == DIV)
+    while (CURRENT_OPTION == MUL || 
+           CURRENT_OPTION == DIV)
     {
+        OPTIONS Option = CURRENT_OPTION;
+
         NEXT_TOKEN;
 
         node_t *rightNode = getPower(ARGUMENTS);
@@ -423,7 +432,8 @@ node_t *getUnary (FUNC_ARGUMENTS)
 
         NEXT_TOKEN;
 
-        node->left = getBrackets(ARGUMENTS);
+        node->left  = getBrackets(ARGUMENTS);
+        node->right = NULL;
 
         return node;
     }
