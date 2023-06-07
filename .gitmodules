@@ -1,3 +1,6 @@
 [submodule "Universal"]
 	path = Universal
 	url = git@github.com:flopsreallygotit/Universal.git
+[submodule "Stack"]
+	path = Stack
+	url = git@github.com:flopsreallygotit/Stack.git

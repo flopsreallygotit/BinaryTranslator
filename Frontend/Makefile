@@ -24,7 +24,7 @@ CXXFLAGS ?= -ggdb3 -std=c++17 -O0 -Wall -Wextra 							\
 			-Wno-old-style-cast -Wno-varargs -Wstack-protector -fcheck-new 	\
 			-fsized-deallocation -fstack-protector -fstrict-overflow 	   	\
 			-flto-odr-type-merging -fno-omit-frame-pointer -pie -fPIE 	   	\
-			# -DDEBUG															\
+			-DDEBUG															\
 
 # Configure linker flags
 

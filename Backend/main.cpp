@@ -4,11 +4,15 @@
 
 int main (const int argc, const char *argv[])
 {
+    // Filename
+
     const char *filename = checkFirstArgvAndGetIt(argc, argv);
 
     CHECKERROR(filename != NULL &&
                "Filename is NULL", 
                -1);
+
+    // Tokenizing input
 
     token_t **tokenArray = tokenArrayConstructor(filename);
 
@@ -20,27 +24,34 @@ int main (const int argc, const char *argv[])
     tokenArrayDump(tokenArray);
     #endif
 
-    variable_t **variableArray = variableArrayConstructor(MaxVariableNumber);
-
-    size_t tokenIndex    = 0;
-    size_t variableIndex = 0;
+    // Making tree from tokens
 
     tree_t tree = {};
     treeConstructor(&tree);
+    size_t tokenIndex = 0;
 
-    tree.root = getGrammar(tokenArray,    &tokenIndex, 
-                           variableArray, &variableIndex, 
-                           MaxVariableNumber, false, NULL);
+    tree.root = getGrammar(tokenArray, &tokenIndex, false);
+    getSubtreeParents(tree.root, NULL);
 
     #ifdef DEBUG
+
     FILE *output = fopen("BackEndOutput.htm", "w");
     treeDump(&tree, "Tree after parse.", output);
     fclose(output);
+    
     #endif
 
-    variableArrayDestructor(variableArray, MaxVariableNumber);
-    tokenArrayDestructor(tokenArray);
+    // Making binary code & variables tables & function array out of tree
+
+    program_t program = {};
+    programConstructor(&program, tree.root);
+    parseStatement(tree.root, &program);
     treeDestructor(&tree);
+
+    // Deallocating memory
+
+    tokenArrayDestructor(tokenArray);
+    programDestructor(&program);
 
     return 0;
 }

@@ -97,6 +97,24 @@ ISERROR treeDestructor (tree_t *tree)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+void getSubtreeParents (node_t *node, node_t *parentNode)
+{
+    if (node == NULL)
+        return;
+
+    node->parent = parentNode;
+
+    if (node->left  != NULL)
+        getSubtreeParents(node->left,  node);
+
+    if (node->right != NULL)
+        getSubtreeParents(node->right, node);
+
+    return;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 void copySubtree (node_t **destNode, node_t *srcNode, node_t *parNode)
 {
     *destNode = nodeConstructor(srcNode->type, srcNode->data, parNode);

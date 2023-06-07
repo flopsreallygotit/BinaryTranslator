@@ -46,12 +46,17 @@ void treeConstructorFunction (tree_t *tree, const char *filename, const int line
 
 void nodeDestructor (node_t *Node);
 
-/// @brief Tree destructor
-/// @param Tree Pointer to tree_t
+/// @brief tree destructor
+/// @param tree Pointer to tree_t
 
-ISERROR treeDestructor (tree_t *Tree);
+ISERROR treeDestructor (tree_t *tree);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/// @brief Getting parent pointers of every node in subtree
+/// @param node Subtree root
+
+void getSubtreeParents (node_t *node, node_t *parentNode);
 
 /// @brief Copy subtree to destination node_t
 /// @param destNode Destination node_t
@@ -69,29 +74,29 @@ void countSubtreeSize (node_t *Node, size_t *Size);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /// @brief Print tree_t in pre-order
-/// @param Tree Poiter to tree_t
+/// @param tree Poiter to tree_t
 /// @param file Pointer to file
 
-ISERROR preorderPrintTree (const tree_t *Tree, FILE *file = stdout);
+ISERROR preorderPrintTree (const tree_t *tree, FILE *file = stdout);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /// @brief Output tree_t in pre-order to file filename.tree_t
-/// @param Tree Pointer to tree_t
+/// @param tree Pointer to tree_t
 /// @param filename Name of file
 
-void outputTree (const tree_t *Tree, const char *filename);
+void outputTree (const tree_t *tree, const char *filename);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /// @brief Dump tree_t in htm file (Shell for dumpFunction())
-/// @param Tree Pointer to tree_t
+/// @param tree Pointer to tree_t
 /// @param file Pointer to file
 
-#define treeDump(Tree, message, file) \
-    treeDumpFunction(Tree, message, #Tree, __FILE__, __LINE__, __PRETTY_FUNCTION__, file)
+#define treeDump(tree, message, file) \
+    treeDumpFunction(tree, message, #tree, __FILE__, __LINE__, __PRETTY_FUNCTION__, file)
 
-ISERROR treeDumpFunction (const tree_t *Tree,     const char *message,
+ISERROR treeDumpFunction (const tree_t *tree,     const char *message,
                           const char *treename, const char *filename, 
                           const int   line,     const char *function, 
                           FILE *file);

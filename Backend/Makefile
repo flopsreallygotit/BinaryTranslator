@@ -24,7 +24,7 @@ CXXFLAGS ?= -ggdb3 -std=c++17 -O0 -Wall -Wextra 							\
 			-Wno-old-style-cast -Wno-varargs -Wstack-protector -fcheck-new 	\
 			-fsized-deallocation -fstack-protector -fstrict-overflow 	   	\
 			-flto-odr-type-merging -fno-omit-frame-pointer -pie -fPIE 	   	\
-			-DDEBUG															\
+			-DDEBUG 														\
 
 # Configure linker flags
 
@@ -38,12 +38,13 @@ FASTFLAGS ?= # -Ofast -mavx -mavx2 -mavx512dq
 
 # Configure directory flags
 
-DIRFLAGS ?= -I../Universal -I../Config -I../DSL -I../Backend -I../Tree
+DIRFLAGS ?= -I../Universal -I../Config -I../DSL -I../Backend -I../Tree -I../Stack
 
 # Configure sources you need to compile
 
 SOURCES  ?= ../Backend/main.cpp ../Backend/translation.cpp ../Backend/tokenizer.cpp	\
 			../Tree/tree.cpp														\
+			../Stack/stackUtils.cpp													\
 			../Universal/universalUtils.cpp ../Universal/textUtils.cpp				\
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

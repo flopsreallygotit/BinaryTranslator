@@ -14,15 +14,7 @@
 #endif
 
 #ifndef LONG_FUNC_ARGUMENTS
-#define LONG_FUNC_ARGUMENTS FUNC_ARGUMENTS,                                     \
-                            variable_t **variableArray, size_t *variableIndex,  \
-                            size_t capacity, bool isFunction, char *function
-#endif
-
-#ifndef LONG_ARGUMENTS
-#define LONG_ARGUMENTS ARGUMENTS,                       \
-                       variableArray, variableIndex,    \
-                       capacity
+#define LONG_FUNC_ARGUMENTS FUNC_ARGUMENTS, bool isFunction
 #endif
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,7 +92,7 @@
 #endif
 
 #ifndef NEW_VARIABLE
-#define NEW_VARIABLE variableConstructor(function, CURRENT_NAME, *variableIndex + 1);
+#define NEW_VARIABLE {.name = CURRENT_NAME, .ramIP = *variableIndex + 1};
 #endif
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
