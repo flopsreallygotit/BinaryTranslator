@@ -5,5 +5,9 @@ TreeDumpSources
 *.out
 *.htm
 
+*.emm.tree
+
 frontend
 backend
+
+.vscode

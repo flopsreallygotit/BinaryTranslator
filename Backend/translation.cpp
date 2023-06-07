@@ -71,8 +71,8 @@ node_t *getGrammar (LONG_FUNC_ARGUMENTS)
     {
         OPTIONS Option = CURRENT_OPTION;
 
-        node_t* leftNode  = NULL;
-        node_t* rightNode = NULL;
+        node_t *leftNode  = NULL;
+        node_t *rightNode = NULL;
         
         NEXT_TOKEN;
 
@@ -211,7 +211,7 @@ table_t *tableConstructor (stack_t *stack)
     if (stack == NULL)
         return NULL;
 
-    table_t *table = (table_t *) calloc (1, sizeof(table_t *));
+    table_t *table = (table_t *) calloc (1, sizeof(table_t));
 
     if (stack->size == 0)
         table->registerPosition = 0;
@@ -310,7 +310,7 @@ static void makePush (binary_t *code, PUSH_TYPE type,
 static void makeOperation (binary_t *code, OPTIONS type)
 {
     #define DEFINE_OPERATION(type, size, binCode)   \
-        case #type:                                 \
+        case type:                                  \
         {                                           \
             printf(BOLD YELLOW #type "\n" RESET);   \
             codeAppend(code, binCode, size);        \
@@ -335,7 +335,7 @@ static void makeJump (binary_t *code, JUMP_TYPE type, int shift)
     #define DEFINE_JMP(type, size, binCode)                         \
         case JMP_##type:                                            \
         {                                                           \
-            binCodeAppend(code, binCode, size);                     \
+            codeAppend(code, binCode, size);                        \
             printf(BOLD YELLOW "JMP_"#type" 0x%x " RESET, shift);   \
             break;                                                  \
         }
@@ -368,26 +368,333 @@ static void remakeJump (binary_t *code, int argument)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+static int getVariablePosition (node_t *node, stack_t *stack)
+{
+	size_t stackIndex = stack->size - 1;
+	table_t *currentTable = stack->data[stackIndex];
+	size_t lastRegister = currentTable->registerPosition;
+
+	while (stackIndex >= 0)
+	{
+		for (size_t varIndex = 0; varIndex < currentTable->size; varIndex++)
+			if (strcasecmp(node->data.name, (currentTable->variableArray[varIndex]).name) == 0)
+				return (int) (currentTable->variableArray[varIndex]).position + 
+                       (int) currentTable->registerPosition - 
+                       (int) lastRegister;
+		
+		if (stackIndex == 0)
+			break;
+		
+		stackIndex--;
+		currentTable = stack->data[stackIndex];
+	}
+
+	return Poizon;
+}
+
+static void countExpression (node_t *node, program_t *program)
+{
+	if (node->left)  
+        countExpression(node->left,  program);
+	if (node->right) 
+        countExpression(node->right, program);
+	
+	if (node->type == VALUE)
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM, node->data.value, 0);
+	
+	else if (node->type == VARIABLE)
+	{
+		int variablePosition = getVariablePosition(node, program->stack);
+
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM_REG_MEM, QWord * variablePosition, RAX_MASK);
+	}
+
+	else if (node->data.option == CALL)
+	{
+		parseCall(node, program);
+
+        makePush(program->code, (PUSH_TYPE) PUSH_REG, 0, RCX_MASK);
+	}
+
+	if (node->type == OPTION)
+        makeOperation(program->code, node->data.option);
+
+    return;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 // Cringe vol. 2
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+static void parseRet (node_t *node, program_t *program)
+{
+	// TODO check
+
+	bool isInLocal = false;
+	node_t *currentNode = node;
+
+	while (currentNode->data.option != FUNC)
+	{
+		if (currentNode->data.option == IF      ||
+			currentNode->data.option == ELSE    ||
+			currentNode->data.option == WHILE)
+			isInLocal = true;
+		
+		currentNode = currentNode->parent;
+	}
+    
+    if (program->main == false)
+	    countExpression(node->left, program);
+    else 
+        codeAppend(program->code, SET_EXIT, SET_EXIT_SIZE);
+
+	table_t *currentTable = program->stack->data[program->stack->size - 2];
+
+	if (isInLocal == true)
+	{
+        makePop (program->code, (POP_TYPE)  POP_REG,  0, RCX_MASK);
+        makePush(program->code, (PUSH_TYPE) PUSH_REG, 0, RAX_MASK); 
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM, QWord * currentTable->size, 0);
+        makeOperation(program->code, SUB);
+        makePop (program->code, (POP_TYPE)  POP_REG,  0, RAX_MASK);
+	}
+    
+    makeRet(program->code);
+
+	return;
+}
+
+static void parseWhile (node_t *node, program_t *program)
+{
+    // TODO check
+	
+    size_t whileAddress = program->code->dataSize;
+	countExpression(node->left, program);
+
+    makePush(program->code, (PUSH_TYPE) PUSH_IMM, 0, 0);
+
+    size_t whileNoAddress = program->code->dataSize + 7;
+    makeJump(program->code, (JUMP_TYPE) JMP_JE, 0);
+
+	parseStatement(node->right, program);
+	
+	table_t *currentTable = program->stack->data[program->stack->size - 1];
+	tableDestructor(currentTable);
+
+    elem_t element = NULL;
+	stackPop(program->stack, &element);			
+	
+	currentTable = program->stack->data[program->stack->size - 1];
+
+    makePush(program->code, (PUSH_TYPE) PUSH_IMM, currentTable->registerPosition, 0);
+    makePop (program->code, (POP_TYPE)  POP_REG,  0, RAX_MASK);
+ 
+    makeJump(program->code, (JUMP_TYPE) JMP_JMP, program->code->dataSize - whileAddress);
+    remakeJump(program->code, whileNoAddress);
+	
+	return;
+}
+
+static void parseIf (node_t *node, program_t *program)
+{
+    // TODO check
+	
+	countExpression(node->left, program);
+
+    makePush(program->code, (PUSH_TYPE) PUSH_IMM, 0, 0);
+	
+	if (node->right->data.option != ELSE)
+	{
+        size_t jmpAddress = program->code->dataSize + 7;
+        makeJump(program->code, (JUMP_TYPE) JMP_JE, 0);
+
+		parseStatement(node->right, program);
+
+		table_t* currentTable = program->stack->data[program->stack->size - 1];
+		tableDestructor(currentTable);
+
+        elem_t element = NULL;
+		stackPop(program->stack, &element);			
+		
+		currentTable = program->stack->data[program->stack->size - 1];
+
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM, currentTable->registerPosition, 0);
+        makePop (program->code, (POP_TYPE)  POP_REG,  0, RAX_MASK);
+
+        remakeJump(program->code, jmpAddress);       
+	}
+
+	else
+	{
+        size_t elseAddress = program->code->dataSize + 7;
+        makeJump(program->code, (JUMP_TYPE) JMP_JE, 0);
+	
+		parseStatement(node->right->left, program);
+
+		table_t *currentTable = program->stack->data[program->stack->size - 1];
+		tableDestructor(currentTable);
+
+        elem_t element = NULL;
+		stackPop(program->stack, &element);			
+		
+		currentTable = program->stack->data[program->stack->size - 1];
+
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM, currentTable->registerPosition, 0);
+        makePop (program->code, (POP_TYPE)  POP_REG, 0, RAX_MASK);
+        
+        size_t ifAddress = program->code->dataSize + 7; 
+        makeJump(program->code, (JUMP_TYPE) JMP_JMP, 0);
+
+        remakeJump(program->code, elseAddress);
+
+		parseStatement(node->right->right, program);
+		
+		currentTable = program->stack->data[program->stack->size - 1];
+		tableDestructor(currentTable);
+
+		stackPop(program->stack, &element);			
+		
+		currentTable = program->stack->data[program->stack->size - 1];
+
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM, currentTable->registerPosition, 0);
+        makePop (program->code, (POP_TYPE)  POP_REG, 0, RAX_MASK);
+        
+	    remakeJump(program->code, ifAddress - 6);	
+	}
+	
+	return;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+static void parseEq (node_t *node, program_t *program)
+{
+    // TODO checks
+	
+	int variablePosition = getVariablePosition(node->left, program->stack);
+	countExpression(node->right, program);
+	
+    makePop(program->code, (POP_TYPE) POP_IMM_REG_MEM, QWord * variablePosition, RAX_MASK);
+	
+	return;
+}
+
+static void parseVar (node_t *node, program_t *program)
+{
+    // TODO checks
+	
+	variable_t newVariable = {}; 
+	table_t *currentTable = program->stack->data[program->stack->size - 1];
+
+	newVariable.name = node->left->data.name;
+	newVariable.position = currentTable->size;
+		
+	currentTable->variableArray[currentTable->size] = newVariable;
+	currentTable->size++;
+		
+	countExpression(node->right, program);
+    
+    makePop(program->code, (POP_TYPE) POP_IMM_REG_MEM, QWord * newVariable.position, RAX_MASK);
+
+	return;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+static void parseScanf (node_t *node, program_t *program)
+{
+	node_t *currentNode = node;
+
+	while (currentNode != NULL)
+	{
+		// if (checkVariable(node->left, program->stack) == false)
+		// {
+		// 	node->left // TODO
+		// }
+		
+		int variablePosition = getVariablePosition(node->left, program->stack);
+
+        printf(BOLD YELLOW "INPUT\n" RESET);
+
+        codeAppend(program->code, PUSH_RDI,       PUSH_RDI_SIZE);
+        codeAppend(program->code, LEA_RDI_RSP,    LEA_RDI_RSP_SIZE);
+        codeAppend(program->code, PUSH_REGS,      PUSH_REGS_SIZE);
+        codeAppend(program->code, MOV_RBP_RSP,    MOV_RBP_RSP_SIZE);
+        codeAppend(program->code, AND_RSP_FF,     AND_RSP_FF_SIZE);
+        codeAppend(program->code, MOVABS_R10_IMM, MOVABS_R10_IMM_SIZE); 
+
+        uint64_t address = EntryPoint + PageSize + MemorySize;
+
+        codeCopy(program->code, program->code->dataSize, &address, 8);
+
+        codeAppend(program->code, CALL_R10,    CALL_R10_SIZE);
+        codeAppend(program->code, MOV_RSP_RBP, MOV_RSP_RBP_SIZE);
+        codeAppend(program->code, POP_REGS,    POP_REGS_SIZE);
+         
+        makePop(program->code, (POP_TYPE) POP_IMM_REG_MEM, variablePosition, RAX_MASK);
+
+		currentNode = currentNode->right;
+	}
+	
+	return;
+}
+
+static void parsePrintf (node_t *node, program_t *program) 
+{
+	node_t *currentNode = node;
+
+	while (currentNode != NULL)
+	{
+		// if (checkVariable(node->left, program->stack) == false)
+		// {
+		// 	(node->left); // TODO process it
+		// }
+  
+        printf(BOLD YELLOW "OUTPUT\n" RESET);
+
+		int varPos = getVariablePosition(node->left, program->stack);
+
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM_REG_MEM, QWord * varPos, RAX_MASK);
+
+        codeAppend(program->code, MOV_RBP_RSP,    MOV_RBP_RSP_SIZE);
+        codeAppend(program->code, PUSH_REGS,      PUSH_REGS_SIZE);
+        codeAppend(program->code, AND_RSP_FF,     AND_RSP_FF_SIZE);
+        codeAppend(program->code, MOVABS_R10_IMM, MOVABS_R10_IMM_SIZE);
+
+        uint64_t address = EntryPoint + PageSize + MemorySize + ScanfSize + ScanfBuffer;  
+        codeCopy(program->code, program->code->dataSize, &address, 8);
+
+        codeAppend(program->code, CALL_R10,    CALL_R10_SIZE);
+        codeAppend(program->code, POP_REGS,    POP_REGS_SIZE);
+        codeAppend(program->code, MOV_RSP_RBP, MOV_RSP_RBP_SIZE);
+        codeAppend(program->code, POP_RDI,     POP_RDI_SIZE);
+
+		currentNode = currentNode->right;
+	}
+	
+	return;
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 static size_t countParams(node_t *node)
 {
-	node_t *currentNode  = node;
+	node_t *currentNode = node;
 	size_t  paramNumber = 0;
 
 	while (currentNode != NULL)
 	{
 		paramNumber++;
-        
+
 		currentNode = currentNode->right;
 	}
 
 	return paramNumber;
 }
 
-static void parseCall (node_t* node, program_t* program)
+void parseCall (node_t *node, program_t *program)
 {
 	bool   isDefFunc = 0;
 	size_t funcParam = 0;
@@ -414,7 +721,7 @@ static void parseCall (node_t* node, program_t* program)
 	if (node->left->left)
 		callParam = countParams(node->left->left);
 	
-	table_t* currentTable = program->stack->data[program->stack->size - 1];
+	table_t *currentTable = program->stack->data[program->stack->size - 1];
 
     makePush(program->code, (PUSH_TYPE) PUSH_REG, 0, RAX_MASK); 
     makePush(program->code, (PUSH_TYPE) PUSH_IMM, QWord * currentTable->size, 0);
@@ -475,15 +782,17 @@ static void parseFunc (node_t *node, program_t *program)
 
 	(program->functionsArray[program->functionNumber]).name = node->left->data.name;
 
-	if (strcasecmp(node->left->right->data.name, "TYPE") == 0)
+	if (node->left != NULL        &&
+        node->left->right != NULL &&
+        strcasecmp(node->left->right->data.name, "TYPE") == 0)
 		(program->functionsArray[program->functionNumber]).returnValue = TYPE;
 
 	else
 		(program->functionsArray[program->functionNumber]).returnValue = VOID;
 	
-	table_t* newTable = tableConstructor(program->stack);
+	table_t *newTable = tableConstructor(program->stack);
 	
-	if (node->left->left)
+	if (node->left != NULL && node->left->left != NULL)
 		(program->functionsArray[program->functionNumber]).paramNumber = parseParams(node->left->left, newTable);
 	
     (program->functionsArray[program->functionNumber]).functionStart = program->code->dataSize;
@@ -493,8 +802,7 @@ static void parseFunc (node_t *node, program_t *program)
 
 	tableDestructor(newTable);
 
-    elem_t element = NULL;
-	stackPop(program->stack, &element);			
+	stackPop(program->stack, NULL);			
 
     program->main = false;
 	
@@ -518,7 +826,7 @@ void parseStatement (node_t *node, program_t *program)
         (node->parent != NULL && node->parent->data.option != FUNC))
     {
         makePush(program->code, (PUSH_TYPE) PUSH_REG, 0, RAX_MASK); 
-        makePush(program->code, (PUSH_TYPE) PUSH_IMM, QWord * oldTable->size, 0);
+        makePush(program->code, (PUSH_TYPE) PUSH_IMM, (int) QWord * oldTable->size, 0);
         makeOperation(program->code, ADD);
         makePop(program->code,  (POP_TYPE)  POP_REG,  0, RAX_MASK);
     }
@@ -526,7 +834,10 @@ void parseStatement (node_t *node, program_t *program)
     table_t *newTable = NULL;
 	
 	if (node->parent == NULL || 
-        (node->parent != NULL && node->parent->data.option != FUNC))
+        (node->parent != NULL         && 
+         node->parent->type == OPTION && 
+         node->parent->data.option != FUNC)
+       )
 	    newTable = tableConstructor(program->stack);
 	
     bool isReturn = true;
@@ -565,44 +876,55 @@ void parseStatement (node_t *node, program_t *program)
 		switch(currentNode->left->data.option)
 		{
 			case VAR:    
+                printf(BOLD RED "PARSING VAR:\n" RESET);
                 parseVar(currentNode->left, program); 
                 break;
 
 			case EQ:
+                printf(BOLD RED "PARSING EQ:\n" RESET);
                 parseEq(currentNode->left, program); 
                 break;
 
 			case FUNC:	  
+                printf(BOLD RED "PARSING FUNC:\n" RESET);
                 parseFunc(currentNode->left, program); 
                 break;
 
 			case OUT: 
+                printf(BOLD RED "PARSING OUT:\n" RESET);
                 parsePrintf(currentNode->left->left, program); 
                 break;
 
 			case IN:  
+                printf(BOLD RED "PARSING IN:\n" RESET);
                 parseScanf(currentNode->left->left, program); 
                 break;
 
 			case CALL:   
+                printf(BOLD RED "PARSING CALL:\n" RESET);
                 parseCall(currentNode->left, program); 
                 break;
             
 			case IF:     
+            case ELSE:
+                printf(BOLD RED "PARSING IF & ELSE:\n" RESET);
                 parseIf(currentNode->left, program); 
                 break;
 
 			case WHILE:  
+                printf(BOLD RED "PARSING WHILE:\n" RESET);
                 parseWhile(currentNode->left, program); 
                 break;
 
 			case RET: 
+                printf(BOLD RED "PARSING RET:\n" RESET);
                 isReturn = true; 
                 parseRet(currentNode->left, program); 
                 break;
 
 			default: 
-                printf("ABOBA");
+                printf(BOLD RED "\n\n\nABOBA\n\n\n" RESET);
+                abort();
 		}
 		
 		currentNode = currentNode->right;

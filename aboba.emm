@@ -1,22 +1,5 @@
 FUNC MAIN { }
     VAR BEBRA 10 ;
-    VAR ABOBA 20 ;
 
-    KOSHKA = 30 ;
-
-    IF { BEBRA == 40 }
-        RET { BEBRA } ;
-    }
-
-    ELSE
-        RET { ABOBA } ;
-    }
-
-    VAR KOSHKA CALL PLUS_FIVE { BEBRA } ;
-
-    RET { KOSHKA } ;
-}
-
-FUNC PLUS_FIVE { ARGUMENT }
-    RET { ARGUMENT + 5 } ;
+    RETURN { 0 } ;
 }

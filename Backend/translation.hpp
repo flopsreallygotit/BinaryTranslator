@@ -68,6 +68,7 @@ void tableDestructor(table_t *table);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+void parseCall      (node_t *node, program_t *program);
 void parseStatement (node_t *node, program_t *program);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

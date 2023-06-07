@@ -6,6 +6,8 @@
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+static const int Poizon = 0xAB0BA;
+
 enum SIZES
 {
     MaxTokenCount     = 8192,
@@ -16,8 +18,6 @@ enum SIZES
     PageSize = 4096,
     QWord    = 8, 
     RamSize  = 256,
-
-    PerLine  = 16, // TODO normal naming
 
     PrintfSize = 0xA8,
     ScanfSize  = 0xAC,
@@ -163,37 +163,6 @@ enum TYPES
     NAME       = 2,
     SHORT_NAME = 3,
     VARIABLE   = 4,
-};
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-enum POP_TYPE 
-{
-    POP_REG         = 0,
-    POP_REG_MEM     = 1,
-    POP_IMM_MEM     = 2,
-    POP_IMM_REG_MEM = 3,
-};
-
-enum PUSH_TYPE
-{
-    PUSH_IMM         = 0,
-    PUSH_REG         = 1,
-    PUSH_IMM_MEM     = 2,
-    PUSH_REG_MEM     = 3,
-    PUSH_IMM_REG_MEM = 4,
-};
-
-enum JUMP_TYPE
-{
-    JMP_JMP  = 0, 
-    JMP_JE   = 1,
-    JMP_JNE  = 2,
-    JMP_JG   = 3,
-    JMP_JGE  = 4,
-    JMP_JL   = 5, 
-    JMP_JLE  = 6,
-    JMP_CALL = 7,
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

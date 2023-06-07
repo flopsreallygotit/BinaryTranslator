@@ -10,12 +10,6 @@
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/// @brief Turn on save info about tree birth
-
-#define BIRTHINFO
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 // Colors of node_t filling in dump
 
 static const char globalOptionFillColor[]   = "#9542F5";
