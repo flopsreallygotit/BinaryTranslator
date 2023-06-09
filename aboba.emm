@@ -1,5 +1,3 @@
-FUNC MAIN { }
-    VAR BEBRA 10 ;
-
+FUNC MAIN { ABOBA }
     RETURN { 0 } ;
 }

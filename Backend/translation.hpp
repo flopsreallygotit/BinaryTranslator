@@ -72,3 +72,7 @@ void parseCall      (node_t *node, program_t *program);
 void parseStatement (node_t *node, program_t *program);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+void codeRun (binary_t *code);
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -196,7 +196,14 @@ static void recursivePreorderPrintTree (const node_t *node, FILE *file)
     dataOutput(node, true, file);
 
     if (node->type == NAME)
-        fprintf(file, "{NIL}{VOID}");
+    {
+        if (node->left != NULL)
+            recursivePreorderPrintTree(node->left, file);
+        else
+            fprintf(file, "{NIL}");
+
+        fprintf(file, "{VOID}");
+    }
 
     if (node->type == SHORT_NAME)
         fprintf(file, "{NIL}{NIL}");

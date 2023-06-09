@@ -120,6 +120,7 @@ DEFINE_OPTION(SEMI_COL, ";")
 DEFINE_OPTION(ST,    " ")
 DEFINE_OPTION(VOID,  " ")
 DEFINE_OPTION(TYPE,  " ")
+
 DEFINE_OPTION(PARAM, " ")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

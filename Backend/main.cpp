@@ -31,6 +31,7 @@ int main (const int argc, const char *argv[])
     size_t tokenIndex = 0;
 
     tree.root = getGrammar(tokenArray, &tokenIndex, false);
+    // putVoids(tree.root); // TODO
     getSubtreeParents(tree.root, NULL);
 
     #ifdef DEBUG
@@ -48,6 +49,13 @@ int main (const int argc, const char *argv[])
     parseStatement(tree.root, &program);
     treeDestructor(&tree);
 
+    // JIT!
+
+    for (size_t i = 0; i < program.code->dataSize; i++)
+        printf(BOLD GREEN "\\x%x " RESET, program.code->data[i], program.code->data[i]);
+
+    // codeRun(program.code);
+
     // Deallocating memory
 
     tokenArrayDestructor(tokenArray);
@@ -55,5 +63,13 @@ int main (const int argc, const char *argv[])
 
     return 0;
 }
+
+// TODO asm file for debug! + comments
+
+// TODO hex dump with binqry code
+
+// TODO 3 interrupt in start of buffer for edb
+
+// кормен лейсерсон ривест
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

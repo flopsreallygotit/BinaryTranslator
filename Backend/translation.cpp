@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <sys/mman.h>
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #include "opcodes.hpp"
@@ -16,7 +18,7 @@ node_t *getGrammar (LONG_FUNC_ARGUMENTS)
 
     if (CURRENT_TOKEN->type == NAME)
     {
-        if (isFunction)
+        if (isFunction == true)
         {
             char *name = CURRENT_NAME;
             
@@ -56,7 +58,7 @@ node_t *getGrammar (LONG_FUNC_ARGUMENTS)
     }
 
     else if (CURRENT_OPTION == NIL  ||
-             CURRENT_OPTION == VOID ||
+             CURRENT_OPTION == VOID || // TODO
              CURRENT_OPTION == TYPE)
     {
         NEXT_TOKEN;
@@ -84,7 +86,7 @@ node_t *getGrammar (LONG_FUNC_ARGUMENTS)
 
         rightNode = getGrammar(ARGUMENTS, false);
 
-        node_t *node  = NEW_NODE(Option);
+        node_t *node = NEW_NODE(Option);
 
         CHECK_ALL_OK;
 
@@ -94,6 +96,21 @@ node_t *getGrammar (LONG_FUNC_ARGUMENTS)
         return node;  
     }
 }
+
+// void putVoidsAndMakeCorrectRets (node_t *node)
+// {
+//     if (node->type == OPTION && 
+//         node->data.option == FUNC)
+//         node->left->right = 
+
+//     if (node->left != NULL)
+//         putVoidsAndMakeCorrectRets(node->left);
+
+//     if (node->right != NULL)
+//         putVoidsAndMakeCorrectRets(node->right);
+
+//     return;
+// }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -940,6 +957,34 @@ void parseStatement (node_t *node, program_t *program)
 	}
 
     return;
+}
+
+void codeRun (binary_t *code)
+{
+    if (code == NULL)
+        return;
+
+    int result = mprotect(code->data, code->dataSize, PROT_EXEC | PROT_WRITE | PROT_READ);
+    
+    void (* JIT) (void) = (void (*) (void)) (code->data);
+
+    asm
+    (
+        "push %rax\n"    
+        "push %rsi\n"    
+        "push %rdi\n"    
+        "push %rbp\n"
+    );
+
+    JIT();
+
+    asm
+    (
+        "pop %rbp\n\t"   
+        "pop %rdi\n\t"   
+        "pop %rsi\n\t"   
+        "pop %rax\n\t"
+    );
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

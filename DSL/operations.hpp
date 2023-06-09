@@ -22,34 +22,26 @@ DEFINE_OPERATION(SUB, 6, "\x5F\x5E\x48\x29\xFE\x56")
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// 0:   |   5F          |   pop rdi
-// 1:   |   5E          |   pop rsi
-// 2:   |   49 89 C2    |   mov r10, rax
-
-// 5:   |   48 89 F0    |   mov rax, rsi
-// 8:   |   48 F7 E7    |   mul rdi
-
-// B:   |   50          |   push rax
-// C:   |   4C 89 D0    |   mov rax, r10
-
-DEFINE_OPERATION(MUL, 15, "\x5F\x5E\x49\x89\xC2\x48\x89\xF0\x48\xF7\xE7\x50\x4C\x89\xD0")
+DEFINE_OPERATION(MUL, 15, "\x5F"            // 0:   |   5F          |   pop rdi     // TODO double check + extension for vertical paste
+                          "\x5E"            // 1:   |   5E          |   pop rsi
+                          "\x48\x89\xC2"    // 2:   |   49 89 C2    |   mov r10, rax
+                          "\x48\x89\xF0"    // 5:   |   48 89 F0    |   mov rax, rsi
+                          "\x48\xF7\xE7"    // 8:   |   48 F7 E7    |   mul rdi
+                          "\x50"           // B:   |   50          |   push rax 
+                          "\x4C\x89\xD0")   // C:   |   4C 89 D0    |   mov rax, r10
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// 0:   |   5F          |   pop rdi
-// 1:   |   5E          |   pop rsi
-// 2:   |   49 89 C2    |   mov r10, rax
-// 5:   |   48 89 F0    |   mov rax, rsi
-
-// 8:   |   52          |   push rdx
-// 9:   |   48 31 D2    |   xor rdx, rdx
-// C:   |   48 F7 F7    |   div rdi
-// F:   |   5A          |   pop rdx
-
-// 10:  |   50          |   push rax
-// 11:  |   4C 89 d0    |   mov rax, r10
-
-DEFINE_OPERATION(DIV, 24, "\x5F\x5E\x49\x89\xC2\x48\x89\xF0\x52\x48\x31\xD2\x48\xF7\xF7\x5A\x50\x4C\x89\xD0")
+DEFINE_OPERATION(DIV, 24, {"\x5F",            /* 0:   |   5F          |*/ "pop rdi"},
+                          {"\x5E",            /* 1:   |   5E          |*/ "pop rsi"},
+                          {"\x49\x89\xC2",    /* 2:   |   49 89 C2    |*/ "mov r10, rax"},
+                          {"\x48\x89\xF0",    /* 5:   |   48 89 F0    |*/ "mov rax, rsi"},
+                          {"\x52",            /* 8:   |   52          |*/ "push rdx"},
+                          {"\x48\x31\xD2",    /* 9:   |   48 31 D2    |*/ "xor rdx, rdx"},
+                          {"\x48\xF7\xF7",    /* C:   |   48 F7 F7    |*/ "div rdi"},
+                          {"\x5A",            /* F:   |   5A          |*/ "pop rdx"},
+                          {"\x50",            /* 10:  |   50          |*/ "push rax"},
+                          {"\x4C\x89\xD0",    /* 11:  |   4C 89 D0    |*/ "mov rax, r10"})
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
